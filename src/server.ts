@@ -8,7 +8,14 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://bright-pegasus-01ac32.netlify.app"
+    ],
+    credentials: true
+  })
+);
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
