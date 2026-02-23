@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          String    @default("AGENT") // Enum: ADMIN, AGENT
+  status        String    @default("ACTIVE") // Enum: ACTIVE, DISABLED
+  availability  String    @default("OFFLINE") // Enum: ONLINE, OFFLINE, BUSY
+  sipExtension  String?
+  sipPassword   String?
+  department    String?
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  assignedCustomers Customer[]
+  callLogs          CallLog[]
+  auditLogs         AuditLog[]
+}
+
+model Customer {
+  id              String    @id @default(uuid())
+  name            String
+  phone           String    @unique
+  email           String?
+  operator        String?
+  notes           String?
+  contractEndDate DateTime?
+  assignedAgentId String?
+  assignedAgent   User?     @relation(fields: [assignedAgentId], references: [id])
+  isHidden        Boolean   @default(false)
+  lastCallDate    DateTime?
+  lastCallStatus  String?
+  contactCount    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  callLogs        CallLog[]
+}
+
+model CallLog {
+  id          String    @id @default(uuid())
+  agentId     String
+  agent       User      @relation(fields: [agentId], references: [id])
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  duration    Int
+  status      String    // Enum: ANSWERED, NO_ANSWER, MISSED
+  direction   String    // Enum: INBOUND, OUTBOUND
+  notes       String?
+  createdAt   DateTime  @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
